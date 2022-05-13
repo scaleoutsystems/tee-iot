@@ -1,5 +1,5 @@
 # Base image
-FROM ubuntu:focal
+FROM python:3.8.9
 
 # Env versioning
 ARG HADOLINT_VERSION=v2.8.0
