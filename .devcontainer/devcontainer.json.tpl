@@ -8,6 +8,7 @@
   "extensions": [
     "exiasr.hadolint",
     "yzhang.markdown-all-in-one",
+    "ms-python.python",
   ],
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind,consistency=default",
