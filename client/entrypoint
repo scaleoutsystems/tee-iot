@@ -1,0 +1,95 @@
+#!/tee-iot/.venv/bin/python
+import json
+
+import fire
+import numpy as np
+import pandas as pd
+from fedn.utils.kerashelper import KerasHelper
+from tensorflow import keras
+from sklearn.model_selection import train_test_split
+
+NUM_CLASSES=10
+
+def _compile_model():
+    # Define model
+    model = keras.Sequential()
+    model.add(keras.layers.LSTM(100, input_shape=(1,36)))
+    model.add(keras.layers.Dense(72, activation='relu'))
+    model.add(keras.layers.Dense(50, activation='relu'))
+    model.add(keras.layers.Dense(36, activation='relu'))
+    model.add(keras.layers.Dense(28, activation='relu'))
+    model.add(keras.layers.Dense(10, activation='softmax'))
+    model.compile(loss=keras.losses.categorical_crossentropy,
+                  optimizer=keras.optimizers.Adam(),
+                  metrics=['accuracy'])
+    return model
+
+def _load_data(data_path, test_size=0.25, seed=12345):
+    # Load data
+    pkd = np.array(pd.read_csv(data_path))
+    x = pkd[:, 1:37]
+    y = pkd[:, 37:]
+
+    # Spit test/train
+    X_train, X_test, y_train, y_test = train_test_split(x, y,test_size=test_size, random_state=seed)
+
+    # Reshape
+    X_train = X_train.reshape(X_train.shape[0], 1, X_train.shape[1])
+    X_test = X_test.reshape(X_test.shape[0], 1, X_test.shape[1])
+
+    return X_train, X_test, y_train, y_test
+
+def init_seed(out_path='seed.npz'):
+	weights = _compile_model().get_weights()
+	helper = KerasHelper()
+	helper.save_model(weights, out_path)
+
+def train(in_model_path, out_model_path, data_path='train.csv', batch_size=32, epochs=2):
+    # Load data
+    x_train, _, y_train, _ = _load_data(data_path)
+
+    # Load model
+    model = _compile_model()
+    helper = KerasHelper()
+    weights = helper.load_model(in_model_path)
+    model.set_weights(weights)
+
+    # Train
+    model.fit(x_train, y_train, epochs=epochs, batch_size=batch_size, verbose=True)
+    
+    # Save
+    weights = model.get_weights()
+    helper.save_model(weights, out_model_path)
+
+def validate(in_model_path, out_json_path, data_path='train.csv'):
+    # Load data
+    x_train, x_test, y_train, y_test = _load_data(data_path)
+
+    # Load model
+    model = _compile_model()
+    helper = KerasHelper()
+    weights = helper.load_model(in_model_path)
+    model.set_weights(weights)
+
+    # Evaluate
+    model_score = model.evaluate(x_train, y_train)
+    model_score_test = model.evaluate(x_test, y_test)
+
+    # JSON schema
+    report = {
+        "training_loss": model_score[0],
+        "training_accuracy": model_score[1],
+        "test_loss": model_score_test[0],
+        "test_accuracy": model_score_test[1],
+    }
+
+    # Save JSON
+    with open(out_json_path,"w") as fh:
+        fh.write(json.dumps(report))
+
+if __name__ == '__main__':
+    fire.Fire({
+        'init_seed': init_seed,
+        'train': train,
+        'validate': validate,
+    })

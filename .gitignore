@@ -1,3 +1,5 @@
 .devcontainer/devcontainer.json
-train.csv
+*.csv
 .venv
+*.npz
+test.json
