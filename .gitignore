@@ -2,4 +2,7 @@
 *.csv
 .venv
 *.npz
-test.json
+*.tar.gz
+.env
+pat.env
+*.json

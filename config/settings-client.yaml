@@ -1,0 +1,5 @@
+
+network_id: fedn-test-network
+controller:
+    discover_host: localhost
+    discover_port: 8090
