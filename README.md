@@ -39,19 +39,10 @@ bin/build_package.sh
 ```
 
 ### Deploy the PoC
-The TEE-enabled containers are currently not publicly available. To login first create a `pat.env` file:
-
-```bash
-# pat.env
-GH_PAT=<GITHUB_PERSONAL_ACCESS_TOKEN> # your PAT goes here
-GH_USR=<GITHUB_USERNAME> # your username goes here
-```
-
-Then login by running: `bin/docker login`. Now, you are ready to deploy the PoC with [docker-compose](https://docs.docker.com/compose).
-
 ```bash
 sudo docker-compose up -d
 ```
+> **Note** you may need to login into Scaleout's GitHub registry to access ghcr.io/scaleoutsystems/tee-gc/fedn:latest
 
 ### Running the PoC
 The reducer UI is now available on `https://localhost:8090`. The quickest way to upload `package.tar.gz` and `seed.npz` is via REST API.
